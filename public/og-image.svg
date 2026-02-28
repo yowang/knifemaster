@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#111111"/>
+  <rect x="0" y="0" width="8" height="630" fill="#dc2626"/>
+  <text x="600" y="240" font-family="Arial,sans-serif" font-size="96" font-weight="bold" fill="white" text-anchor="middle">🔪</text>
+  <text x="600" y="360" font-family="Arial,sans-serif" font-size="72" font-weight="bold" fill="white" text-anchor="middle">Knife Master</text>
+  <text x="600" y="430" font-family="Arial,sans-serif" font-size="32" fill="#9ca3af" text-anchor="middle">Play Free Online Knife Throwing Game</text>
+  <text x="600" y="570" font-family="Arial,sans-serif" font-size="24" fill="#6b7280" text-anchor="middle">knifemaster.org</text>
+</svg>
