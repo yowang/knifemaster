@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 // Primary: self-hosted game (no domain restrictions)
 // Fallback: GD source (when approved)
 const GAME_SOURCES = [
-  "/game/index.html",
+  "/game/",
   "https://html5.gamedistribution.com/8dcf873e22b141a3963be2e5e58487ca/",
 ];
 
