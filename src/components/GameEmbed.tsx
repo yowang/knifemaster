@@ -1,8 +1,10 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 
+// Primary: self-hosted game (no domain restrictions)
+// Fallback: GD source (when approved)
 const GAME_SOURCES = [
-  "https://plays.org/game/knife-hit/",
+  "/game/index.html",
   "https://html5.gamedistribution.com/8dcf873e22b141a3963be2e5e58487ca/",
 ];
 
@@ -11,36 +13,9 @@ export default function GameEmbed() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setLoading(true);
-    setError(false);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      if (srcIndex < GAME_SOURCES.length - 1) {
-        setSrcIndex((i) => i + 1);
-      } else {
-        setLoading(false);
-        setError(true);
-      }
-    }, 15000);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [srcIndex]);
-
-  // Block any top-level navigation triggered by the iframe
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, []);
-
   const handleLoad = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
     setLoading(false);
     setError(false);
   };
@@ -57,7 +32,7 @@ export default function GameEmbed() {
   };
 
   return (
-    <div ref={wrapperRef} className="relative w-full bg-[#0d0d0d]" style={{ paddingBottom: "62%", minHeight: 340 }}>
+    <div ref={wrapperRef} className="relative w-full bg-[#0d0d0d]" style={{ paddingBottom: "66%", minHeight: 340 }}>
       {loading && !error && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1a1a] z-10">
           <div className="w-12 h-12 border-4 border-[#dc2626] border-t-transparent rounded-full animate-spin mb-4" />
@@ -81,7 +56,6 @@ export default function GameEmbed() {
           onLoad={handleLoad}
           title="Knife Master Game"
           scrolling="no"
-          referrerPolicy="strict-origin-when-cross-origin"
         />
       )}
       <button
