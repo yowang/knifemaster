@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="12" fill="#111111"/>
+  <!-- Knife blade -->
+  <polygon points="10,54 36,28 44,36" fill="#e5e7eb"/>
+  <!-- Knife handle -->
+  <rect x="40" y="12" width="10" height="18" rx="3" transform="rotate(45 45 21)" fill="#dc2626"/>
+  <!-- Target circle -->
+  <circle cx="16" cy="48" r="6" fill="none" stroke="#f59e0b" stroke-width="2"/>
+  <circle cx="16" cy="48" r="2" fill="#dc2626"/>
+</svg>

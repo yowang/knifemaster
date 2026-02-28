@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" width="160" height="40">
+  <!-- Knife icon -->
+  <polygon points="4,36 22,18 28,24" fill="#e5e7eb"/>
+  <rect x="25" y="5" width="7" height="13" rx="2" transform="rotate(45 28.5 11.5)" fill="#dc2626"/>
+  <!-- Target dot -->
+  <circle cx="7" cy="33" r="4" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+  <circle cx="7" cy="33" r="1.5" fill="#dc2626"/>
+  <!-- Text: Knife -->
+  <text x="38" y="27" font-family="Arial,sans-serif" font-size="20" font-weight="bold" fill="white">Knife</text>
+  <!-- Text: Master -->
+  <text x="95" y="27" font-family="Arial,sans-serif" font-size="20" font-weight="bold" fill="#dc2626">Master</text>
+</svg>

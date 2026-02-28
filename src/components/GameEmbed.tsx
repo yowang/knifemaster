@@ -16,16 +16,15 @@ export default function GameEmbed() {
   useEffect(() => {
     setLoading(true);
     setError(false);
+    if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
-      if (loading) {
-        if (srcIndex < GAME_SOURCES.length - 1) {
-          setSrcIndex((i) => i + 1);
-        } else {
-          setLoading(false);
-          setError(true);
-        }
+      if (srcIndex < GAME_SOURCES.length - 1) {
+        setSrcIndex((i) => i + 1);
+      } else {
+        setLoading(false);
+        setError(true);
       }
-    }, 12000);
+    }, 14000);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [srcIndex]);
 
@@ -46,9 +45,9 @@ export default function GameEmbed() {
   };
 
   return (
-    <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+    <div className="relative w-full bg-[#0d0d0d]" style={{ paddingBottom: "60%", minHeight: 320 }}>
       {loading && !error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1a1a] z-10">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1a1a] z-10 rounded-b-xl">
           <div className="w-12 h-12 border-4 border-[#dc2626] border-t-transparent rounded-full animate-spin mb-4" />
           <p className="text-gray-400 text-sm">Loading Knife Master...</p>
         </div>
@@ -70,18 +69,27 @@ export default function GameEmbed() {
           ref={iframeRef}
           src={GAME_SOURCES[srcIndex]}
           className="absolute inset-0 w-full h-full border-0"
-          allow="fullscreen; autoplay"
+          /* sandbox allows scripts+popups-to-same-origin but blocks top-level navigation */
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups-to-escape-sandbox allow-modals allow-orientation-lock allow-pointer-lock"
+          allow="fullscreen; autoplay; pointer-lock"
           allowFullScreen
           onLoad={handleLoad}
           title="Knife Master Game"
+          scrolling="no"
         />
       )}
+      {/* Fullscreen button */}
       <button
         onClick={handleFullscreen}
-        className="absolute bottom-2 right-2 z-20 bg-black/60 hover:bg-black/80 text-white text-xs px-3 py-1 rounded transition-colors"
+        className="absolute bottom-3 right-3 z-20 bg-black/70 hover:bg-black/90 text-white rounded-md px-3 py-1.5 flex items-center gap-1.5 text-xs transition-colors"
         title="Fullscreen"
+        aria-label="Open fullscreen"
       >
-        ⛶ Fullscreen
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+          <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
+        Fullscreen
       </button>
     </div>
   );

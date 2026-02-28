@@ -8,6 +8,11 @@ export const metadata: Metadata = {
     "Play Knife Master online for free! Master the art of knife throwing, hit targets with precision, unlock weapons and conquer challenging levels. No download required!",
   keywords:
     "knife master, knife throwing game, knife master online, free knife game, skill game, arcade game, knife master unblocked",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   openGraph: {
     title: "Knife Master - Play Free Online Knife Throwing Game",
     description:
@@ -20,8 +25,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Knife Master - Play Free Online Knife Throwing Game",
-    description:
-      "Master the art of knife throwing! Play Knife Master free online.",
+    description: "Master the art of knife throwing! Play Knife Master free online.",
   },
   robots: { index: true, follow: true },
   alternates: { canonical: "https://knifemaster.org" },
@@ -29,20 +33,14 @@ export const metadata: Metadata = {
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         {GA_ID && (
           <>
-            <script
-              async
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-            />
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
             <script
               dangerouslySetInnerHTML={{
                 __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}');`,
