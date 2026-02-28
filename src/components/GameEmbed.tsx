@@ -2,8 +2,8 @@
 import { useState, useRef, useEffect } from "react";
 
 const GAME_SOURCES = [
+  "https://plays.org/game/knife-hit/",
   "https://html5.gamedistribution.com/8dcf873e22b141a3963be2e5e58487ca/",
-  "https://www.miniplay.com/embed/knife-master",
 ];
 
 export default function GameEmbed() {
