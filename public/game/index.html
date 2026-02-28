@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Knife Master</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: Arial, sans-serif; touch-action: none; }
+  #ui { color: #fff; text-align: center; margin-bottom: 12px; }
+  #score-display { font-size: 2em; font-weight: bold; color: #f59e0b; }
+  #level-display { font-size: 1em; color: #9ca3af; }
+  #knives-display { font-size: 1em; color: #dc2626; margin-top: 4px; }
+  #canvas { display: block; cursor: pointer; }
+  #msg { color: #fff; text-align: center; margin-top: 12px; font-size: 1.1em; min-height: 28px; }
+  #restart-btn { display: none; margin-top: 10px; background: #dc2626; color: #fff; border: none; padding: 10px 28px; border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: bold; }
+  #restart-btn:hover { background: #b91c1c; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <div id="score-display">SCORE: 0</div>
+  <div id="level-display">LEVEL 1</div>
+  <div id="knives-display">🔪 🔪 🔪 🔪 🔪</div>
+</div>
+<canvas id="canvas"></canvas>
+<div id="msg">TAP OR CLICK TO THROW</div>
+<button id="restart-btn" onclick="restartGame()">PLAY AGAIN</button>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// Responsive size
+function resize() {
+  const maxW = Math.min(window.innerWidth - 20, 420);
+  const maxH = Math.min(window.innerHeight - 180, 520);
+  const size = Math.min(maxW, maxH);
+  canvas.width = size;
+  canvas.height = size;
+}
+resize();
+window.addEventListener('resize', () => { resize(); drawAll(); });
+
+// Game state
+let score = 0, level = 1, knivesLeft = 5, knivesPerLevel = 5;
+let angle = 0, speed = 0.018, stuckKnives = [], phase = 'playing'; // playing | fail | win
+let targetRadius, cx, cy;
+let combo = 0;
+
+function initLevel() {
+  targetRadius = canvas.width * 0.22;
+  cx = canvas.width / 2;
+  cy = canvas.height * 0.42;
+  knivesLeft = knivesPerLevel + Math.floor(level / 3);
+  stuckKnives = [];
+  speed = 0.018 + level * 0.003;
+  if (level % 3 === 0) speed = -speed; // reverse direction
+  phase = 'playing';
+  updateUI();
+  document.getElementById('msg').textContent = 'TAP OR CLICK TO THROW';
+  document.getElementById('restart-btn').style.display = 'none';
+}
+
+function updateUI() {
+  document.getElementById('score-display').textContent = 'SCORE: ' + score;
+  document.getElementById('level-display').textContent = 'LEVEL ' + level;
+  const kniveIcons = Array(Math.max(0, knivesLeft)).fill('🔪').join(' ');
+  document.getElementById('knives-display').textContent = kniveIcons || '';
+}
+
+function drawLog() {
+  // Wood log circle
+  const grad = ctx.createRadialGradient(cx - targetRadius*0.25, cy - targetRadius*0.25, targetRadius*0.05, cx, cy, targetRadius);
+  grad.addColorStop(0, '#c8956a');
+  grad.addColorStop(0.5, '#a0714f');
+  grad.addColorStop(1, '#7a5230');
+  ctx.beginPath();
+  ctx.arc(cx, cy, targetRadius, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+  // Ring patterns
+  for (let r = targetRadius * 0.2; r < targetRadius; r += targetRadius * 0.18) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, targetRadius * 0.08, 0, Math.PI * 2);
+  ctx.fillStyle = '#5a3520';
+  ctx.fill();
+  // Outer shadow
+  ctx.beginPath();
+  ctx.arc(cx, cy, targetRadius, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function drawKnife(kx, ky, kangle, isFlying = false, progress = 1) {
+  ctx.save();
+  ctx.translate(kx, ky);
+  ctx.rotate(kangle);
+  // Blade
+  const bladeLen = canvas.width * 0.135;
+  const bladeW = canvas.width * 0.022;
+  ctx.beginPath();
+  ctx.moveTo(0, -bladeLen);
+  ctx.lineTo(bladeW * 0.4, -bladeLen * 0.3);
+  ctx.lineTo(bladeW * 0.4, 0);
+  ctx.lineTo(-bladeW * 0.4, 0);
+  ctx.lineTo(-bladeW * 0.15, -bladeLen * 0.3);
+  ctx.closePath();
+  const bladeGrad = ctx.createLinearGradient(-bladeW * 0.4, 0, bladeW * 0.4, 0);
+  bladeGrad.addColorStop(0, '#c0c0c0');
+  bladeGrad.addColorStop(0.4, '#f0f0f0');
+  bladeGrad.addColorStop(1, '#a0a0a0');
+  ctx.fillStyle = bladeGrad;
+  ctx.fill();
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+  // Guard
+  const handleLen = canvas.width * 0.055;
+  ctx.fillStyle = '#c0392b';
+  ctx.fillRect(-bladeW * 0.7, 0, bladeW * 1.4, canvas.width * 0.014);
+  // Handle
+  ctx.beginPath();
+  ctx.roundRect(-bladeW * 0.5, canvas.width * 0.014, bladeW, handleLen, 2);
+  const handleGrad = ctx.createLinearGradient(-bladeW * 0.5, 0, bladeW * 0.5, 0);
+  handleGrad.addColorStop(0, '#8B4513');
+  handleGrad.addColorStop(0.5, '#A0522D');
+  handleGrad.addColorStop(1, '#6B3410');
+  ctx.fillStyle = handleGrad;
+  ctx.fill();
+  // Handle wrap lines
+  for (let i = 1; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-bladeW * 0.5, canvas.width * 0.014 + (handleLen / 4) * i);
+    ctx.lineTo(bladeW * 0.5, canvas.width * 0.014 + (handleLen / 4) * i);
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// Stuck knives (on the log)
+function drawStuckKnives() {
+  for (const k of stuckKnives) {
+    // Calculate current position based on log rotation
+    const currentAngle = k.logAngle + angle;
+    const tipX = cx + Math.cos(currentAngle) * targetRadius;
+    const tipY = cy + Math.sin(currentAngle) * targetRadius;
+    drawKnife(tipX, tipY, currentAngle + Math.PI / 2, false);
+  }
+}
+
+// Flying knife
+let flyingKnife = null;
+function drawFlyingKnife() {
+  if (!flyingKnife) return;
+  flyingKnife.y -= canvas.height * 0.025;
+  if (flyingKnife.y < cy + targetRadius + canvas.width * 0.135) {
+    // Check collision
+    checkCollision();
+  }
+  drawKnife(flyingKnife.x, flyingKnife.y, 0);
+}
+
+let knifeBaseY;
+function getKnifeStartY() { return canvas.height * 0.88; }
+
+function throwKnife() {
+  if (phase !== 'playing' || flyingKnife) return;
+  flyingKnife = { x: cx, y: getKnifeStartY() };
+}
+
+function checkCollision() {
+  if (!flyingKnife) return;
+  const kx = flyingKnife.x, ky = flyingKnife.y;
+  const dist = Math.sqrt((kx - cx) ** 2 + (ky - cy) ** 2);
+  // Hit log?
+  if (dist <= targetRadius + canvas.width * 0.13) {
+    const hitAngle = Math.atan2(ky - cy, kx - cx);
+    // Check against stuck knives
+    for (const k of stuckKnives) {
+      const kCurrentAngle = k.logAngle + angle;
+      const diff = Math.abs(((hitAngle - kCurrentAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2));
+      const minDiff = Math.min(diff, Math.PI * 2 - diff);
+      if (minDiff < 0.32) {
+        // Collision! Game over
+        flyingKnife = null;
+        phase = 'fail';
+        document.getElementById('msg').textContent = '💥 Game Over! Score: ' + score;
+        document.getElementById('restart-btn').style.display = 'inline-block';
+        return;
+      }
+    }
+    // Stick!
+    const relAngle = hitAngle - angle;
+    stuckKnives.push({ logAngle: relAngle });
+    flyingKnife = null;
+    score += 10 * level;
+    combo++;
+    knivesLeft--;
+    updateUI();
+    if (knivesLeft <= 0) {
+      // Level complete!
+      setTimeout(() => {
+        level++;
+        knivesPerLevel = Math.min(8, 5 + Math.floor(level / 2));
+        document.getElementById('msg').textContent = '✨ Level ' + level + '!';
+        setTimeout(initLevel, 800);
+      }, 300);
+    }
+  }
+}
+
+function drawWaitingKnife() {
+  if (phase !== 'playing' || flyingKnife) {
+    drawKnife(cx, getKnifeStartY(), 0);
+  }
+}
+
+function drawAll() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Background gradient
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, canvas.width * 0.8);
+  bg.addColorStop(0, '#1a1a2e');
+  bg.addColorStop(1, '#0d0d0d');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.translate(-cx, -cy);
+  drawLog();
+  drawStuckKnives();
+  ctx.restore();
+
+  drawFlyingKnife();
+  drawWaitingKnife();
+}
+
+// Game loop
+function gameLoop() {
+  if (phase === 'playing') angle += speed;
+  drawAll();
+  requestAnimationFrame(gameLoop);
+}
+
+function restartGame() {
+  score = 0; level = 1; knivesPerLevel = 5; combo = 0;
+  document.getElementById('restart-btn').style.display = 'none';
+  initLevel();
+}
+
+canvas.addEventListener('click', throwKnife);
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); throwKnife(); }, { passive: false });
+
+initLevel();
+gameLoop();
+</script>
+</body>
+</html>
